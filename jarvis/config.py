@@ -31,6 +31,7 @@ log = logging.getLogger(__name__)
 class Settings:
     # Local AI (Ollama)
     ollama_model: str = "llama3.2:1b"
+    ollama_host: str = "http://127.0.0.1:11434"  # local only; never point this at another machine
 
     # Android phone over ADB
     phone_control: bool = True

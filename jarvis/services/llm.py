@@ -37,14 +37,21 @@ Student's question:
 
 
 class LocalLLM:
-    def __init__(self, model: str):
+    def __init__(self, model: str, host: str = "http://127.0.0.1:11434"):
         self.model = model
+        self.host = host
+        self._client = None
+
+    def _ollama(self):
+        if self._client is None:
+            import ollama
+
+            self._client = ollama.Client(host=self.host, timeout=180)
+        return self._client
 
     def chat(self, user_text: str) -> str:
         try:
-            import ollama
-
-            response = ollama.chat(
+            response = self._ollama().chat(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": CHAT_SYSTEM_PROMPT},
@@ -68,9 +75,7 @@ class LocalLLM:
             return "Please ask me a study question."
 
         try:
-            import ollama
-
-            response = ollama.chat(
+            response = self._ollama().chat(
                 model=self.model,
                 messages=[
                     {
@@ -89,9 +94,7 @@ class LocalLLM:
         """Health check only: is Ollama reachable and is the model pulled?"""
 
         try:
-            import ollama
-
-            listing = ollama.list()
+            listing = self._ollama().list()
             models = listing.get("models", []) if isinstance(listing, dict) else listing.models
             names = {
                 (m.get("model") or m.get("name")) if isinstance(m, dict) else m.model

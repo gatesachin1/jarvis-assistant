@@ -74,7 +74,7 @@ def build(settings):
             Path(settings.data_dir) / "reminders.json",
             legacy_path=ROOT_DIR / "jarvis_reminders.json",
         ),
-        llm=LocalLLM(settings.ollama_model),
+        llm=LocalLLM(settings.ollama_model, settings.ollama_host),
         speaker=speaker,
     )
     ctx.health = lambda: health.collect(ctx)
