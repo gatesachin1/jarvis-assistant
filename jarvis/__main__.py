@@ -15,6 +15,7 @@ import argparse
 import logging
 import threading
 import webbrowser
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from jarvis import __version__
@@ -114,9 +115,15 @@ def main(argv=None):
     desktop = None  # set below; reminders also raise a Windows toast through its tray icon
 
     def on_reminder(reminder):
-        assistant.say(f"⏰ Reminder: {reminder.task}")
+        # Reminders that came due while the PC was off are shown, not suddenly spoken.
+        missed = datetime.now() - reminder.when > timedelta(hours=1)
+        if missed:
+            text = f"Missed reminder: {reminder.task} (was due {reminder.when:%d %b %I:%M %p})"
+        else:
+            text = f"⏰ Reminder: {reminder.task}"
+        assistant.say(text, speak=not missed and settings.speak_replies != "never")
         if desktop:
-            desktop.notify(f"⏰ {reminder.task}")
+            desktop.notify(text)
 
     # Reminders fire even when nobody is looking at the window.
     ReminderScheduler(assistant.ctx.reminders, on_reminder).start()
@@ -152,11 +159,8 @@ def main(argv=None):
 
     def greet():
         info = health.collect(assistant.ctx)
-        hello = "Hello! I am JARVIS. Say 'what can you do' to see my commands."
-        if args.minimized:  # silent start at Windows sign-in
-            assistant.bus.publish({"type": "message", "sender": "jarvis", "source": "jarvis", "text": hello})
-        else:
-            assistant.say(hello)
+        # Shown, not spoken: a voice greeting on every start is surprising.
+        assistant.say("Hello! I am JARVIS. Say 'Hey JARVIS' or type 'what can you do'.", speak=False)
         problems = health.summary(info).splitlines()
         problems = [line for line in problems if "Not ready" in line]
         if problems:

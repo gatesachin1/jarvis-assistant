@@ -4,6 +4,14 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 
+class _DropDisconnectNoise(logging.Filter):
+    """Windows asyncio logs a scary traceback whenever a browser tab closes; it's harmless."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        exc = record.exc_info[1] if record.exc_info else None
+        return not isinstance(exc, ConnectionResetError | ConnectionAbortedError)
+
+
 def setup_logging(log_dir: str, verbose: bool = False) -> None:
     Path(log_dir).mkdir(parents=True, exist_ok=True)
 
@@ -27,3 +35,4 @@ def setup_logging(log_dir: str, verbose: bool = False) -> None:
     logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO, handlers=handlers, force=True)
     for noisy in ("httpx", "httpx2", "huggingface_hub", "comtypes", "faster_whisper"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
+    logging.getLogger("asyncio").addFilter(_DropDisconnectNoise())

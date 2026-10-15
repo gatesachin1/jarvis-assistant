@@ -49,8 +49,9 @@ class Settings:
     tts_engine: str = "piper"       # "piper" (offline neural voice) or "sapi" (Windows voice)
     piper_voice: str = "en_US-lessac-medium"
     tts_enabled: bool = True
+    speak_replies: str = "voice"    # "voice" = speak only when you spoke, "always", "never"
     tts_rate: int = 175
-    tts_max_chars: int = 600
+    tts_max_chars: int = 300        # long answers: speak the start, show the rest on screen
     wake_word: bool = True
     wake_word_model: str = "hey_jarvis"
     wake_word_threshold: float = 0.5
@@ -106,6 +107,30 @@ def find_adb() -> str | None:
     return None
 
 
+CHOICES = {
+    "speak_replies": ("voice", "always", "never"),
+    "stt_engine": ("whisper", "google"),
+    "tts_engine": ("piper", "sapi"),
+    "prefer_device": ("phone", "laptop"),
+}
+
+
+def _validate(settings: Settings) -> None:
+    """Fall back to the default (with a warning) for typos like "tts_engine": "pipr"."""
+
+    for name, allowed in CHOICES.items():
+        value = str(getattr(settings, name)).lower()
+        if value not in allowed:
+            default = getattr(Settings, name)
+            log.warning("Setting %s=%r is not one of %s; using %r", name, value, allowed, default)
+            value = default
+        setattr(settings, name, value)
+
+    if not 0 < settings.wake_word_threshold < 1:
+        log.warning("wake_word_threshold must be between 0 and 1; using 0.5")
+        settings.wake_word_threshold = 0.5
+
+
 def load_settings(path: Path | None = None) -> Settings:
     path = Path(path or os.environ.get("JARVIS_CONFIG") or ROOT_DIR / "config.json")
 
@@ -145,6 +170,7 @@ def load_settings(path: Path | None = None) -> Settings:
             log.warning("Invalid value for '%s': %r", name, value)
 
     settings = Settings(**clean)
+    _validate(settings)
 
     if not settings.adb_path:
         settings.adb_path = find_adb() or ""

@@ -18,7 +18,7 @@ import subprocess
 import json
 from datetime import datetime, timedelta
 
-ADB_PATH = r"C:\Users\saksh\Downloads\platform-tools-latest-windows\platform-tools\adb.exe"
+ADB_PATH = r"C:\Users\<user>\Downloads\platform-tools-latest-windows\platform-tools\adb.exe"
 # ==============================
 # JARVIS REMINDERS AND PLANNER
 # ==============================
@@ -78,7 +78,7 @@ def open_mobile_app(package_name):
 OLLAMA_MODEL = "llama3.2:1b"
 
 ADB_PATH = (
-    r"C:\Users\saksh\Downloads"
+    r"C:\Users\<user>\Downloads"
     r"\platform-tools-latest-windows"
     r"\platform-tools\adb.exe"
 )
@@ -1341,7 +1341,7 @@ def update_status(message):
         0,
         lambda: status_label.configure(text=message)
     )
-ADB_PATH = r"C:\Users\saksh\Downloads\platform-tools-latest-windows\platform-tools\adb.exe"
+ADB_PATH = r"C:\Users\<user>\Downloads\platform-tools-latest-windows\platform-tools\adb.exe"
 
 MOBILE_APPS = {
     "whatsapp": "com.whatsapp",

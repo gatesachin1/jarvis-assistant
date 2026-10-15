@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import logging
+import re
 import threading
 import time
+from collections import deque
 from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
 
@@ -17,6 +19,23 @@ from jarvis.core.text import normalize, split_tasks
 log = logging.getLogger(__name__)
 
 IDLE_TEXT = "SYSTEM ONLINE"
+ECHO_OVERLAP = 0.6  # a voice "command" sharing 60%+ of its words with recent speech is our own echo
+
+
+def _words(text: str) -> set[str]:
+    return set(re.findall(r"[a-z0-9']+", text.lower()))
+
+
+def is_echo(heard: str, recent_speech) -> bool:
+    """True if `heard` is mostly words JARVIS itself just said (mic picked up the speakers)."""
+
+    heard_words = _words(heard)
+    if len(heard_words) < 3:
+        return False
+    return any(
+        len(heard_words & _words(spoken)) / len(heard_words) >= ECHO_OVERLAP
+        for spoken in recent_speech
+    )
 
 
 class Assistant:
@@ -27,6 +46,7 @@ class Assistant:
         # a burst of clicks from spawning dozens of threads.
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="jarvis-cmd")
         self._listen_lock = threading.Lock()
+        self._recent_speech: deque[str] = deque(maxlen=5)
         self.before_listen: Callable[[], None] = lambda: None
         self.after_listen: Callable[[], None] = lambda: None
 
@@ -40,7 +60,14 @@ class Assistant:
             return None
 
         self.bus.publish({"type": "message", "sender": "user", "text": text, "source": source})
-        return self._executor.submit(self._run, text)
+
+        # "stop talking" / "voice off" must not wait behind a slow AI answer.
+        cmd = registry.first_match(normalize(text))
+        if cmd and cmd.immediate:
+            self.reply(self.execute(normalize(text)), source)
+            return None
+
+        return self._executor.submit(self._run, text, source)
 
     def listen_async(self) -> None:
         """Capture one spoken command in the background (mic button / wake word)."""
@@ -55,11 +82,16 @@ class Assistant:
 
         try:
             self.before_listen()
+            self._wait_until_quiet()
             self.status("listening", "Listening...")
             text = stt.listen_once(
                 self.ctx.settings,
                 on_recognizing=lambda: self.status("busy", "Recognizing..."),
             )
+            if is_echo(text, self._recent_speech):
+                log.info("Ignored echo of JARVIS's own voice: %r", text)
+                self.status("idle", IDLE_TEXT)
+                return
             self.submit(text, source="voice")
         except JarvisError as error:
             self.status("idle", str(error))
@@ -72,14 +104,25 @@ class Assistant:
 
     # -------------------------------------------------------------- execution
 
-    def _run(self, text: str) -> None:
+    def _wait_until_quiet(self, timeout: float = 3.0) -> None:
+        """Stop JARVIS talking before opening the mic, so it doesn't record itself."""
+
+        speaker = self.ctx.speaker
+        if not speaker:
+            return
+        speaker.stop()
+        deadline = time.monotonic() + timeout
+        while speaker.speaking and time.monotonic() < deadline:
+            time.sleep(0.05)
+
+    def _run(self, text: str, source: str = "text") -> None:
         self.status("busy", "JARVIS is processing...")
         try:
             for reply in self.process(text):
-                self.say(reply)
+                self.reply(reply, source)
         except Exception:
             log.exception("Command crashed: %s", text)
-            self.say("Something went wrong while running that command.")
+            self.reply("Something went wrong while running that command.", source)
         finally:
             self.status("idle", IDLE_TEXT)
 
@@ -127,9 +170,21 @@ class Assistant:
 
     # ----------------------------------------------------------------- output
 
-    def say(self, text: str) -> None:
+    def should_speak(self, source: str) -> bool:
+        """speak_replies: "voice" = only answer aloud when you spoke; "always"; "never"."""
+
+        mode = self.ctx.settings.speak_replies
+        return mode == "always" or (mode == "voice" and source == "voice")
+
+    def reply(self, text: str, source: str) -> None:
+        self.say(text, speak=self.should_speak(source))
+
+    def say(self, text: str, speak: bool = True) -> None:
+        if not text:
+            return
         self.bus.publish({"type": "message", "sender": "jarvis", "text": text, "source": "jarvis"})
-        if self.ctx.speaker:
+        if speak and self.ctx.speaker:
+            self._recent_speech.append(text)
             self.ctx.speaker.say(text)
 
     def status(self, state: str, text: str) -> None:

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import threading
 from collections.abc import Callable
 
@@ -27,8 +28,33 @@ START_TIMEOUT_BLOCKS = 50  # wait up to 5 s for speech to begin
 SILENCE_BLOCKS = 10  # stop after 1 s of silence
 MAX_BLOCKS = 120  # 12 s phrase limit
 
+# Whisper "hears" these in silence/background noise (artefacts of its training data).
+PHANTOM_PHRASES = {
+    "you", "thank you", "thanks", "thank you very much", "thanks for watching",
+    "thank you for watching", "bye", "okay", "ok", "so", "uh", "um", "hmm", "oh",
+    "subtitles by the amara.org community", "please subscribe",
+}
+NO_SPEECH_LIMIT = 0.6  # segment probably isn't speech
+MIN_AVG_LOGPROB = -1.0  # segment is a low-confidence guess
+
 _whisper = None
 _whisper_lock = threading.Lock()
+
+
+def clean_transcript(segments) -> str:
+    """Join confident segments; drop noise, low-confidence guesses and phantom phrases."""
+
+    kept = [
+        seg.text.strip()
+        for seg in segments
+        if seg.no_speech_prob < NO_SPEECH_LIMIT and seg.avg_logprob > MIN_AVG_LOGPROB
+    ]
+    text = " ".join(t for t in kept if t).strip()
+    bare = re.sub(r"[^a-z ]", "", text.lower()).strip()
+
+    if len(bare.replace(" ", "")) < 2 or bare in PHANTOM_PHRASES:
+        return ""
+    return text
 
 
 def _record():
@@ -90,8 +116,9 @@ def _transcribe_whisper(audio, model: str, models_dir: str, language: str) -> st
         language=language or None,
         beam_size=1,
         condition_on_previous_text=False,
+        vad_filter=True,  # skip non-speech audio (fans, music, TV) before decoding
     )
-    text = " ".join(segment.text.strip() for segment in segments).strip()
+    text = clean_transcript(segments)
     if not text:
         raise JarvisError("I couldn't understand that.")
     return text

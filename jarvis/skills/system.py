@@ -48,11 +48,26 @@ def system_status(ctx, req):
 
 
 @command(
-    "voice off",
-    r"(?:stop|mute|turn off) (?:talking|speaking|voice|speech)",
-    r"(?:be quiet|shut up|silence)",
+    "stop speaking",
+    r"stop (?:talking|speaking)",
+    r"(?:be quiet|shut up|silence|quiet|chup)",
     priority=10,
+    immediate=True,
     examples=["stop talking"],
+)
+def stop_speaking(ctx, req):
+    if ctx.speaker:
+        ctx.speaker.stop()
+    return "Okay."
+
+
+@command(
+    "voice off",
+    r"(?:mute|turn off|disable) (?:your )?(?:voice|speech|talking)",
+    r"(?:voice|speech) off",
+    priority=10,
+    immediate=True,
+    examples=["voice off"],
 )
 def voice_off(ctx, req):
     if ctx.speaker:
@@ -66,6 +81,7 @@ def voice_off(ctx, req):
     r"(?:turn on|enable|unmute) (?:voice|speech|talking)",
     r"start talking",
     priority=10,
+    immediate=True,
     examples=["voice on"],
 )
 def voice_on(ctx, req):

@@ -15,19 +15,39 @@ Android phone (over ADB). Anything it doesn't recognise as a command goes to a
 | Microphone | Any | For voice commands and "Hey JARVIS" |
 | Android phone | Optional | USB debugging on, for phone control |
 
-## Quick start
+## Installation guide
 
-```powershell
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
+**About 20 minutes, mostly downloads.**
 
-copy config.example.json config.json   # optional: personal settings (not committed to git)
-python -m jarvis --web                 # desktop app + web dashboard (http://127.0.0.1:8765)
-```
+1. **Get the code**
+   ```powershell
+   git clone <this-repo-url> jarvis
+   cd jarvis
+   ```
+2. **Install Python packages** (Python 3.10+)
+   ```powershell
+   python -m venv .venv
+   .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+3. **Install the local AI.** Follow [Local AI setup (Ollama)](#local-ai-setup-ollama) below.
+   In short: set 4 environment variables, install Ollama, then run `ollama pull llama3.2:1b`.
+4. **Optional settings:** `copy config.example.json config.json` and edit. This file is never committed.
+5. **Run it**
+   ```powershell
+   python -m jarvis --web     # or double-click run_jarvis.bat
+   ```
+   The desktop window and the dashboard (http://127.0.0.1:8765) open. The first start
+   downloads the voice models (~200 MB). Type `system status` to check that AI, mic and
+   phone are ready.
 
-Or double-click `run_jarvis.bat`. `python jarvis_gui.py` also still works. Without
-Ollama, everything except AI chat and the study assistant works. Set Ollama up next.
+**Optional extras:**
+- Phone control: see [Phone setup](#phone-setup).
+- Start with Windows: say `start with windows`.
+- Standalone `.exe` without Python: see [Build and install](#build-and-install-the-windows-app).
+
+`python jarvis_gui.py` also still works. Without Ollama, everything except AI chat and
+the study assistant works.
 
 | Flag | Effect |
 |---|---|
@@ -91,8 +111,22 @@ Voice input uses **Whisper** and spoken replies use a **Piper** neural voice. Bo
 locally and work without internet. The models (~200 MB) download into `data/models`
 on first start and load in the background, so the first command is quick.
 
-- JARVIS ignores the wake word while it is speaking, so it won't wake itself up.
-- No PyAudio needed: the microphone is read with `sounddevice`.
+**When does JARVIS speak?** Only when you talked to it. Typed and clicked commands get
+text replies only (`"speak_replies": "voice"`; set `"always"` or `"never"` to change this).
+Reminders are spoken when they're due. Long answers are spoken for about 300 characters,
+and the rest stays on screen.
+
+**Protection against phantom audio:**
+- The wake word needs several matching frames in a row, so a cough or click won't trigger it.
+  It is ignored while JARVIS is speaking.
+- Opening the mic stops JARVIS mid-sentence, and anything it hears that repeats its own
+  last reply is discarded as an echo.
+- Whisper skips non-speech audio and drops low-confidence guesses and common phantom
+  phrases ("thank you", "you"…).
+- Reminders that came due while the PC was off are shown as *missed*, not spoken.
+- Say `stop talking` (or press **Esc**) to interrupt at once. `voice off` mutes all replies.
+
+No PyAudio needed: the microphone is read with `sounddevice`.
 - Settings: `"stt_engine": "google"` or `"tts_engine": "sapi"` switch back to the lighter
   online/Windows engines (saves ~0.5 GB RAM). `"whisper_model": "small"` is more accurate
   but slower.
@@ -134,7 +168,7 @@ to the laptop.
 | AI chat | `tell me a joke`, `explain recursion simply`, or anything else |
 | Study | `help me study`, `study explain normalization in DBMS` |
 | Phone link | `connect phone wirelessly`, `connect phone at 192.168.1.20`, `disconnect phone` |
-| System | `what time is it`, `time kya hai`, `system status`, `stop talking`, `voice on`, `start with windows`, `what can you do` |
+| System | `what time is it`, `time kya hai`, `system status`, `stop talking`, `voice off` / `voice on`, `start with windows`, `what can you do` |
 | Chains | `open instagram and then search youtube for DSA` |
 
 ## Configuration
@@ -147,6 +181,7 @@ most useful ones:
 |---|---|---|
 | `ollama_model` | `llama3.2:1b` | AI model for chat and study |
 | `ollama_host` | `http://127.0.0.1:11434` | Ollama server. Keep it on `127.0.0.1` so it stays private |
+| `speak_replies` | `voice` | `voice` = speak only when you spoke · `always` · `never` |
 | `stt_engine` / `tts_engine` | `whisper` / `piper` | Offline voice engines |
 | `wake_word_threshold` | `0.5` | Raise it if "Hey JARVIS" triggers by mistake |
 | `prefer_device` | `phone` | Where `open X` goes when both phone and laptop can open it |
@@ -164,6 +199,8 @@ most useful ones:
 | AI replies are slow or the PC freezes | Close browser tabs to free RAM (the model needs ~2 GB free), or stay on `llama3.2:1b`. |
 | "No Android phone found" | Check USB debugging, accept the prompt on the phone, or say `connect phone wirelessly`. |
 | Voice commands not recognised | `system status` shows the microphone state. Speak after the status changes to *Listening…*. |
+| JARVIS talks unexpectedly | Check `logs/jarvis.log` for `Wake word detected` / `Tasks:` lines. Raise `wake_word_threshold` (e.g. `0.7`), set `"speak_replies": "never"`, or run with `--no-wake`. |
+| Settings seem ignored | A typo falls back to the default; `logs/jarvis.log` shows a warning naming the setting. |
 
 ## Project layout
 

@@ -47,13 +47,14 @@ class Command:
     priority: int = 50
     examples: tuple[str, ...] = ()
     atomic: bool = False  # never split this command's text on "and"/"then"
+    immediate: bool = False  # run at once, skipping the queue (e.g. "stop talking")
     order: int = field(default=0, compare=False)
 
 
 _COMMANDS: list[Command] = []
 
 
-def command(name, *patterns, priority=50, examples=(), atomic=False):
+def command(name, *patterns, priority=50, examples=(), atomic=False, immediate=False):
     """Register a command handler. Lower priority numbers are tried first."""
 
     def decorator(handler):
@@ -65,6 +66,7 @@ def command(name, *patterns, priority=50, examples=(), atomic=False):
                 priority=priority,
                 examples=tuple(examples),
                 atomic=atomic,
+                immediate=immediate,
                 order=len(_COMMANDS),
             )
         )

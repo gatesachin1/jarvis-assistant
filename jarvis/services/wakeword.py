@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 SAMPLE_RATE = 16000
 CHUNK = 1280  # 80 ms, what openWakeWord expects
 COOLDOWN_SECONDS = 2.0
+PATIENCE_FRAMES = 2  # a real "Hey JARVIS" scores high on several frames; a click or cough on one
 
 
 class WakeWordListener:
@@ -92,14 +93,17 @@ class WakeWordListener:
                     samplerate=SAMPLE_RATE, channels=1, dtype="int16", blocksize=CHUNK
                 ) as stream:
                     backoff = 2
+                    hits = 0
                     while self._active.is_set() and not self._stop.is_set():
                         audio, _ = stream.read(CHUNK)
                         if self.is_suppressed():
                             model.reset()
+                            hits = 0
                             continue
                         scores = model.predict(audio.flatten())
+                        hits = hits + 1 if max(scores.values(), default=0) >= self.threshold else 0
 
-                        if max(scores.values(), default=0) >= self.threshold:
+                        if hits >= PATIENCE_FRAMES:
                             log.info("Wake word detected %s", scores)
                             model.reset()
                             self.pause()  # release the mic for the command
