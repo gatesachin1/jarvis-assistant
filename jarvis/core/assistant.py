@@ -57,7 +57,7 @@ class Assistant:
             self.before_listen()
             self.status("listening", "Listening...")
             text = stt.listen_once(
-                language=self.ctx.settings.speech_language,
+                self.ctx.settings,
                 on_recognizing=lambda: self.status("busy", "Recognizing..."),
             )
             self.submit(text, source="voice")

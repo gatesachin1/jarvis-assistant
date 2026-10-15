@@ -444,3 +444,53 @@ def call(ctx, req):
     time.sleep(1)
     ctx.adb.input_text(who)
     return f"Searching Contacts for {who}. Select the right contact on your phone."
+
+
+# ------------------------------------------------------------ wireless ADB
+
+@command(
+    "phone wifi",
+    r"(?:connect|switch) (?:my |the )?phone (?:wirelessly|over wi-?fi|via wi-?fi|to wi-?fi|without (?:a )?cable)",
+    r"(?:enable|start|turn on) (?:wireless|wi-?fi) (?:adb|debugging|phone(?: control)?)",
+    r"go wireless",
+    priority=14,
+    examples=["connect phone wirelessly"],
+)
+def phone_wifi(ctx, req):
+    address = ctx.adb.enable_wifi()
+    return f"Phone connected over Wi-Fi at {address}. You can unplug the cable now; I'll reconnect automatically."
+
+
+@command(
+    "phone connect ip",
+    r"connect (?:to )?(?:my |the )?phone (?:at|on) (?P<addr>\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?)",
+    priority=14,
+)
+def phone_connect_ip(ctx, req):
+    address = ctx.adb.connect_wifi(req["addr"])
+    return f"Connected to your phone at {address}."
+
+
+@command(
+    "phone pair",
+    r"pair (?:my |the )?phone (?:at |on )?(?P<addr>\d{1,3}(?:\.\d{1,3}){3}:\d+)(?: with)? (?:code|pin) (?P<code>\d{6})",
+    priority=14,
+    examples=["pair phone 192.168.1.20:37123 code 123456"],
+)
+def phone_pair(ctx, req):
+    ctx.adb.pair(req["addr"], req["code"])
+    return (
+        "Paired. Now say 'connect phone at <IP>:<port>' using the port shown "
+        "under Wireless debugging (it differs from the pairing port)."
+    )
+
+
+@command(
+    "phone disconnect",
+    r"disconnect (?:my |the )?phone(?: wi-?fi)?",
+    r"(?:disable|stop|turn off) (?:wireless|wi-?fi) (?:adb|debugging|phone(?: control)?)",
+    priority=14,
+)
+def phone_disconnect(ctx, req):
+    ctx.adb.disconnect_wifi()
+    return "Wireless phone connection removed."

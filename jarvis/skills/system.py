@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from jarvis.core.registry import command, commands
-from jarvis.services import health
+from jarvis.services import autostart, health
 
 
 @command(
@@ -92,3 +92,26 @@ def show_help(ctx, req):
                 lines.append(f"• {example}")
     lines.append("Anything else goes to the local AI model.")
     return "\n".join(lines)
+
+
+@command(
+    "autostart on",
+    r"(?:start|launch|run|open) (?:jarvis |yourself )?(?:with|on|when) windows(?: starts)?",
+    r"(?:enable|turn on) (?:auto ?start|start with windows|startup)",
+    priority=10,
+    examples=["start with windows"],
+)
+def autostart_on(ctx, req):
+    autostart.enable()
+    return "Done. I'll start minimised in the system tray whenever you sign in to Windows."
+
+
+@command(
+    "autostart off",
+    r"(?:disable|turn off|stop) (?:auto ?start|start(?:ing)? with windows|startup)",
+    r"don'?t start with windows",
+    priority=10,
+)
+def autostart_off(ctx, req):
+    autostart.disable()
+    return "I won't start with Windows any more."

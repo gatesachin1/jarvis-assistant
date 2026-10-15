@@ -38,9 +38,15 @@ class Settings:
     adb_serial: str = ""        # empty = first authorised device
     prefer_device: str = "phone"  # "phone" or "laptop" when both can open an app
     multi_task_delay: float = 1.5  # seconds between chained phone actions
+    adb_wifi_address: str = ""  # e.g. "192.168.1.20:5555"; remembered after "connect phone wirelessly"
 
     # Voice
-    speech_language: str = "en-IN"
+    speech_language: str = "en-IN"  # used by the Google engine
+    stt_engine: str = "whisper"     # "whisper" (offline) or "google" (online)
+    whisper_model: str = "base"     # tiny / base / small - bigger is more accurate but slower
+    whisper_language: str = "en"    # "en" keeps Hinglish in Roman script; "" = auto-detect
+    tts_engine: str = "piper"       # "piper" (offline neural voice) or "sapi" (Windows voice)
+    piper_voice: str = "en_US-lessac-medium"
     tts_enabled: bool = True
     tts_rate: int = 175
     tts_max_chars: int = 600
@@ -55,6 +61,7 @@ class Settings:
     # Storage
     data_dir: str = str(ROOT_DIR / "data")
     log_dir: str = str(ROOT_DIR / "logs")
+    models_dir: str = str(ROOT_DIR / "data" / "models")  # Whisper + Piper downloads
 
 
 def _coerce(value, target_type):
@@ -121,6 +128,9 @@ def load_settings(path: Path | None = None) -> Settings:
     for name, value in values.items():
         if name.startswith("_"):
             continue  # allow "_comment" keys in config.json
+
+        if name.endswith("_dir") and not value:
+            continue  # empty folder setting = use the default location
 
         if name not in known:
             log.warning("Unknown setting '%s' ignored", name)

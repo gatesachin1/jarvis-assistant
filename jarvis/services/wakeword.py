@@ -27,11 +27,13 @@ class WakeWordListener:
         threshold: float,
         on_wake: Callable[[], None],
         on_status: Callable[[str], None] = lambda _: None,
+        is_suppressed: Callable[[], bool] = lambda: False,
     ):
         self.model_name = model_name
         self.threshold = threshold
         self.on_wake = on_wake
         self.on_status = on_status
+        self.is_suppressed = is_suppressed  # e.g. JARVIS is speaking: don't wake on our own voice
         self._active = threading.Event()
         self._active.set()
         self._stop = threading.Event()
@@ -92,6 +94,9 @@ class WakeWordListener:
                     backoff = 2
                     while self._active.is_set() and not self._stop.is_set():
                         audio, _ = stream.read(CHUNK)
+                        if self.is_suppressed():
+                            model.reset()
+                            continue
                         scores = model.predict(audio.flatten())
 
                         if max(scores.values(), default=0) >= self.threshold:

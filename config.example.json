@@ -8,8 +8,14 @@
   "adb_serial": "",
   "prefer_device": "phone",
   "multi_task_delay": 1.5,
+  "adb_wifi_address": "",
 
   "speech_language": "en-IN",
+  "stt_engine": "whisper",
+  "whisper_model": "base",
+  "whisper_language": "en",
+  "tts_engine": "piper",
+  "piper_voice": "en_US-lessac-medium",
   "tts_enabled": true,
   "tts_rate": 175,
   "tts_max_chars": 600,
@@ -18,5 +24,7 @@
   "wake_word_threshold": 0.5,
 
   "web_host": "127.0.0.1",
-  "web_port": 8765
+  "web_port": 8765,
+
+  "models_dir": ""
 }

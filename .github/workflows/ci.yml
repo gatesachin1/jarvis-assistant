@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Tests use fakes for the phone, mic, voice and Ollama, so only the
+      # light dependencies are needed here.
+      - name: Install test dependencies
+        run: pip install pytest ruff httpx fastapi "uvicorn[standard]"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Test
+        run: pytest -q

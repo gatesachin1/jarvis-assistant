@@ -11,6 +11,12 @@ comtypes>=1.2; sys_platform == "win32"
 sounddevice>=0.4
 numpy>=1.24
 openwakeword>=0.6
+faster-whisper>=1.0   # offline speech recognition
+piper-tts>=1.2        # offline neural voice
+
+# System tray + notifications
+pystray>=0.19
+Pillow>=10
 
 # Web dashboard + live system stats
 fastapi>=0.110

@@ -25,5 +25,5 @@ def setup_logging(log_dir: str, verbose: bool = False) -> None:
         handlers.append(console)
 
     logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO, handlers=handlers, force=True)
-    for noisy in ("httpx", "comtypes"):
+    for noisy in ("httpx", "httpx2", "huggingface_hub", "comtypes", "faster_whisper"):
         logging.getLogger(noisy).setLevel(logging.WARNING)

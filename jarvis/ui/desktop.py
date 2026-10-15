@@ -6,13 +6,18 @@ the bus go into a queue that the Tk main loop drains every 50 ms.
 
 from __future__ import annotations
 
+import logging
 import queue
+import webbrowser
 from datetime import datetime
 
 import customtkinter as ctk
 
 from jarvis.core.assistant import Assistant
 from jarvis.core.events import EventBus
+from jarvis.ui.tray import Tray
+
+log = logging.getLogger(__name__)
 
 BG_COLOR = "#070B16"
 PANEL_COLOR = "#101A2B"
@@ -39,13 +44,22 @@ QUICK_ACTIONS = [
 
 
 class DesktopApp:
-    def __init__(self, assistant: Assistant, bus: EventBus, wake_listener=None):
+    def __init__(
+        self,
+        assistant: Assistant,
+        bus: EventBus,
+        wake_listener=None,
+        dashboard_url: str | None = None,
+        start_minimized: bool = False,
+    ):
         self.assistant = assistant
         self.speaker = assistant.ctx.speaker
         self.wake = wake_listener
+        self.dashboard_url = dashboard_url
         self._events: queue.Queue = queue.Queue()
         self._history: list[str] = []
         self._history_index = 0
+        self._hidden_hint_shown = False
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
@@ -55,7 +69,8 @@ class DesktopApp:
         self.root.configure(fg_color=BG_COLOR)
         self.root.geometry("1100x780")
         self.root.minsize(850, 650)
-        self.root.protocol("WM_DELETE_WINDOW", self.close)
+        self.root.protocol("WM_DELETE_WINDOW", self.hide_or_close)
+        self._set_window_icon()
 
         self._build_header()
         self._build_actions()
@@ -66,6 +81,36 @@ class DesktopApp:
         self.root.after(50, self._pump_events)
         self.root.after(0, self._tick_clock)
         self.entry.focus_set()
+
+        # Tray callbacks run on another thread: they only post to the event queue.
+        self.tray = Tray(
+            on_show=lambda: self._events.put({"type": "ui", "action": "show"}),
+            on_quit=lambda: self._events.put({"type": "ui", "action": "quit"}),
+            on_dashboard=(lambda: webbrowser.open(dashboard_url)) if dashboard_url else None,
+            speaker=self.speaker,
+        )
+        has_tray = self.tray.start()
+
+        if start_minimized and has_tray:
+            self.root.withdraw()
+
+    def _set_window_icon(self):
+        try:
+            from PIL import ImageTk
+
+            from jarvis.ui.icon import make_icon
+
+            self._icon_image = ImageTk.PhotoImage(make_icon(64))
+            self.root.iconphoto(True, self._icon_image)
+            # CustomTkinter resets the icon shortly after start-up; set it again.
+            self.root.after(300, lambda: self.root.iconphoto(True, self._icon_image))
+        except Exception:
+            log.debug("Window icon unavailable", exc_info=True)
+
+    def notify(self, message: str) -> None:
+        """Windows toast, used for reminders. Safe to call from any thread."""
+
+        self.tray.notify(message)
 
     # ---------------------------------------------------------------- layout
 
@@ -193,7 +238,12 @@ class DesktopApp:
         self.root.after(50, self._pump_events)
 
     def _handle(self, event):
-        if event["type"] == "message":
+        if event["type"] == "ui":
+            if event["action"] == "show":
+                self.show()
+            elif event["action"] == "quit":
+                self.close()
+        elif event["type"] == "message":
             self._append(event["sender"], event["text"])
         elif event["type"] == "status":
             color = STATE_COLORS.get(event["state"], GREEN)
@@ -213,7 +263,25 @@ class DesktopApp:
     def run(self):
         self.root.mainloop()
 
+    def show(self):
+        self.root.deiconify()
+        self.root.lift()
+        self.root.focus_force()
+        self.entry.focus_set()
+
+    def hide_or_close(self):
+        """Window X button: keep running in the tray if there is one."""
+
+        if not self.tray.running:
+            self.close()
+            return
+        self.root.withdraw()
+        if not self._hidden_hint_shown:
+            self._hidden_hint_shown = True
+            self.tray.notify("Still running in the tray. Right-click the J icon to quit.")
+
     def close(self):
+        self.tray.stop()
         if self.wake:
             self.wake.stop()
         if self.speaker:
