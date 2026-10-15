@@ -1,0 +1,18 @@
+# Desktop UI
+customtkinter>=5.2
+
+# Local AI (Ollama must also be installed and running: https://ollama.com)
+ollama>=0.4
+
+# Voice input / output / wake word
+SpeechRecognition>=3.10
+pyttsx3>=2.90
+comtypes>=1.2; sys_platform == "win32"
+sounddevice>=0.4
+numpy>=1.24
+openwakeword>=0.6
+
+# Web dashboard + live system stats
+fastapi>=0.110
+uvicorn[standard]>=0.29   # [standard] includes WebSocket support
+psutil>=5.9

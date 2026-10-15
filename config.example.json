@@ -1,0 +1,22 @@
+{
+  "_comment": "Copy this file to config.json and change what you need. Every key is optional.",
+
+  "ollama_model": "llama3.2:1b",
+
+  "phone_control": true,
+  "adb_path": "",
+  "adb_serial": "",
+  "prefer_device": "phone",
+  "multi_task_delay": 1.5,
+
+  "speech_language": "en-IN",
+  "tts_enabled": true,
+  "tts_rate": 175,
+  "tts_max_chars": 600,
+  "wake_word": true,
+  "wake_word_model": "hey_jarvis",
+  "wake_word_threshold": 0.5,
+
+  "web_host": "127.0.0.1",
+  "web_port": 8765
+}

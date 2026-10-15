@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Personal runtime data
+config.json
+data/
+logs/
+jarvis_reminders.json
+
+# Build output
+build/
+dist/
+*.spec

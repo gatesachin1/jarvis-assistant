@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>J.A.R.V.I.S | AI Command Center</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<!-- JARVIS Chat Section -->
+<section id="jarvisChat">
+    <h2>Chat with JARVIS</h2>
+
+    <div id="chatMessages">
+        <p>JARVIS: Hello! How can I help you?</p>
+    </div>
+
+    <form id="chatForm">
+        <input
+            id="chatInput"
+            type="text"
+            placeholder="Ask JARVIS anything..."
+            required
+        >
+
+        <button type="submit">Send</button>
+    </form>
+</section>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">J</div>
+
+            <div>
+                <h2>J.A.R.V.I.S</h2>
+                <p>PERSONAL AI</p>
+            </div>
+        </div>
+
+        <p class="sidebar-label">WORKSPACE</p>
+
+        <nav class="navigation">
+            <button class="nav-item active" data-section="dashboard">
+                ◈ Dashboard
+            </button>
+
+            <button class="nav-item" data-section="assistant">
+                ✧ AI Assistant
+            </button>
+
+            <button class="nav-item" data-section="study">
+                ▤ Study Center
+            </button>
+
+            <button class="nav-item" data-section="reminders">
+                ◷ Reminders
+            </button>
+
+            <button class="nav-item" data-section="devices">
+                ⌘ Connected Devices
+            </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="connection-indicator">
+                <span class="status-dot demo-dot"></span>
+
+                <div>
+                    <strong>Frontend Preview</strong>
+                    <p>Backend not connected</p>
+                </div>
+            </div>
+
+            <p class="version">J.A.R.V.I.S UI · v1.0</p>
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <header class="topbar">
+
+            <div>
+                <p class="eyebrow">PERSONAL AI COMMAND CENTER</p>
+
+                <h1>
+                    Welcome back,
+                    <span>Commander.</span>
+                </h1>
+
+                <p class="topbar-subtitle">
+                    Your personal intelligence system at a glance.
+                </p>
+            </div>
+
+            <div class="topbar-right">
+
+                <div class="system-status">
+                    <span class="status-dot demo-dot"></span>
+                    DEMO MODE
+                </div>
+
+                <div class="clock-card">
+                    <span id="clock">--:--:--</span>
+                    <small id="date">Loading date...</small>
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- SYSTEM OVERVIEW -->
+        <section class="overview-grid">
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span>AI ENGINE</span>
+                    <span class="stat-icon cyan">✧</span>
+                </div>
+
+                <h2 id="ai-status">Preview</h2>
+                <p>Backend connection pending</p>
+
+                <div class="stat-footer">
+                    <span class="mini-dot demo-dot"></span>
+                    Demo interface
+                </div>
+            </article>
+
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span>CPU USAGE</span>
+                    <span class="stat-icon purple">▥</span>
+                </div>
+
+                <h2 id="cpu-value">--%</h2>
+                <p>Live data requires Python</p>
+
+                <div class="progress-track">
+                    <div class="progress-fill purple-fill" id="cpu-bar"></div>
+                </div>
+            </article>
+
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span>MEMORY</span>
+                    <span class="stat-icon blue">▤</span>
+                </div>
+
+                <h2 id="ram-value">--%</h2>
+                <p>Live data requires Python</p>
+
+                <div class="progress-track">
+                    <div class="progress-fill blue-fill" id="ram-bar"></div>
+                </div>
+            </article>
+
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span>ANDROID</span>
+                    <span class="stat-icon green">⌘</span>
+                </div>
+
+                <h2 id="android-status">Unknown</h2>
+                <p>ADB connection not checked</p>
+
+                <div class="stat-footer">
+                    <span class="mini-dot demo-dot"></span>
+                    Awaiting backend
+                </div>
+            </article>
+
+        </section>
+
+
+        <!-- AI CORE AND QUICK ACTIONS -->
+        <section class="main-grid">
+
+            <!-- AI CORE -->
+            <article class="panel ai-panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">NEURAL INTERFACE</p>
+                        <h2>AI Core</h2>
+                    </div>
+
+                    <span class="live-badge">
+                        <span class="status-dot demo-dot"></span>
+                        PREVIEW
+                    </span>
+                </div>
+
+
+                <div class="core-stage" id="core-stage">
+
+                    <div class="core-orbit orbit-one"></div>
+                    <div class="core-orbit orbit-two"></div>
+                    <div class="core-orbit orbit-three"></div>
+
+                    <div class="core-glow"></div>
+
+                    <div class="core-circle">
+                        <div class="core-inner">J</div>
+                    </div>
+
+                </div>
+
+                <h3 class="core-title" id="core-title">
+                    SYSTEM STANDBY
+                </h3>
+
+                <p class="core-description" id="core-description">
+                    Enter a command to preview the interface.
+                </p>
+
+                <button class="secondary-button" id="core-demo-button">
+                    ◈ Test AI Animation
+                </button>
+
+            </article>
+
+
+            <!-- QUICK ACTIONS -->
+            <article class="panel actions-panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">CONTROL MODULES</p>
+                        <h2>Quick Actions</h2>
+                    </div>
+
+                    <span class="subtle-text">6 modules</span>
+                </div>
+
+
+                <div class="action-grid">
+
+                    <button class="action-card" data-command="start study mode">
+                        <span class="action-icon violet">▤</span>
+                        <strong>Study Mode</strong>
+                        <small>Focus and revise</small>
+                    </button>
+
+                    <button class="action-card" data-command="show my reminders">
+                        <span class="action-icon amber">◷</span>
+                        <strong>Reminders</strong>
+                        <small>View your tasks</small>
+                    </button>
+
+                    <button class="action-card" data-command="start quiz mode">
+                        <span class="action-icon pink">✎</span>
+                        <strong>Quiz Mode</strong>
+                        <small>Practice questions</small>
+                    </button>
+
+                    <button class="action-card" data-command="open whatsapp">
+                        <span class="action-icon green">◉</span>
+                        <strong>WhatsApp</strong>
+                        <small>Open on device</small>
+                    </button>
+
+                    <button class="action-card" data-command="open spotify">
+                        <span class="action-icon spotify">♫</span>
+                        <strong>Spotify</strong>
+                        <small>Music controls</small>
+                    </button>
+
+                    <button class="action-card" data-command="show system status">
+                        <span class="action-icon cyan">▥</span>
+                        <strong>System Check</strong>
+                        <small>Inspect connection</small>
+                    </button>
+
+                </div>
+
+                <p class="module-note">
+                    Demo buttons prepare commands. Real execution requires
+                    the Python backend.
+                </p>
+
+            </article>
+
+        </section>
+
+
+        <!-- ACTIVITY LOG -->
+        <section class="panel activity-panel">
+
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">SYSTEM EVENTS</p>
+                    <h2>Activity Log</h2>
+                </div>
+
+                <button class="text-button" id="clear-log">
+                    Clear log
+                </button>
+            </div>
+
+            <div class="activity-list" id="activity-list" aria-live="polite">
+
+                <div class="activity-item">
+                    <span class="activity-icon cyan">✓</span>
+
+                    <div>
+                        <strong>Frontend initialized</strong>
+                        <p>Dashboard interface loaded successfully.</p>
+                    </div>
+
+                    <time>NOW</time>
+                </div>
+
+                <div class="activity-item">
+                    <span class="activity-icon amber">!</span>
+
+                    <div>
+                        <strong>Backend connection pending</strong>
+                        <p>AI and device features are not connected yet.</p>
+                    </div>
+
+                    <time>INFO</time>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CHAT -->
+        <section class="panel chat-panel" id="chat-panel">
+
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">NATURAL LANGUAGE INTERFACE</p>
+                    <h2>Talk to J.A.R.V.I.S</h2>
+                </div>
+
+                <span class="subtle-text">Text preview</span>
+            </div>
+
+
+            <div class="chat-messages" id="chat-messages" aria-live="polite">
+
+                <div class="message jarvis-message">
+                    <div class="message-avatar">J</div>
+
+                    <div class="message-content">
+                        <strong>J.A.R.V.I.S</strong>
+
+                        <p>
+                            Welcome back, Commander. The frontend is ready.
+                            Connect the Python backend to enable AI responses.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <form class="command-form" id="command-form">
+
+                <label class="sr-only" for="command-input">
+                    Enter your command
+                </label>
+
+                <input
+                    type="text"
+                    id="command-input"
+                    placeholder="Ask JARVIS something..."
+                    autocomplete="off"
+                    required
+                >
+
+                <button
+                    type="button"
+                    class="voice-button"
+                    id="voice-button"
+                    title="Voice input"
+                    aria-label="Voice input"
+                >
+                    🎙
+                </button>
+
+                <button type="submit" class="send-button">
+                    EXECUTE ↗
+                </button>
+
+            </form>
+
+            <p class="input-note" id="input-note">
+                Frontend preview only · No commands are executed yet.
+            </p>
+
+        </section>
+
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <span>J.A.R.V.I.S PERSONAL AI SYSTEM</span>
+
+            <span>
+                DESIGNED FOR LOCAL AI ·
+                <span class="footer-accent">PRIVACY FIRST</span>
+            </span>
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>
