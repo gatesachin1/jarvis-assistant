@@ -15,6 +15,10 @@ from jarvis.core.text import normalize, split_tasks
         ("reminder dikhao", "show reminders"),
         ("time kya hai", "what time is it"),
         ("  open   notepad.  ", "open notepad"),
+        ("Hey JARVIS, open YouTube.", "open YouTube"),
+        ("hey Jarvis open YouTube", "open YouTube"),
+        ("ok jarvis what time is it?", "what time is it"),
+        ("hello jarvis", "hello jarvis"),  # nothing after the wake phrase: keep it
         ("Draft a WhatsApp to 919876543210 saying Hi THERE", "Draft a WhatsApp to 919876543210 saying Hi THERE"),
     ],
 )

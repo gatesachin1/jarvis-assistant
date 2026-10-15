@@ -94,10 +94,13 @@ class Assistant:
                 return
             self.submit(text, source="voice")
         except JarvisError as error:
-            self.status("idle", str(error))
+            log.info("Voice input: %s", error)
+            self.say(f"🎙 {error}", speak=False)  # visible in the chat, not just the status bar
+            self.status("idle", IDLE_TEXT)
         except Exception as error:
             log.exception("Voice input failed")
-            self.status("idle", f"Voice error: {error}")
+            self.say(f"🎙 Voice error: {error}", speak=False)
+            self.status("idle", IDLE_TEXT)
         finally:
             self.after_listen()
             self._listen_lock.release()

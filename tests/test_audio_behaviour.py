@@ -83,9 +83,27 @@ def seg(text, no_speech=0.05, logprob=-0.3):
 def test_whisper_noise_and_phantom_phrases_are_dropped():
     assert clean_transcript([seg(" Thank you.")]) == ""
     assert clean_transcript([seg(" you")]) == ""
-    assert clean_transcript([seg(" Imagine retrying to predict", no_speech=0.8)]) == ""
-    assert clean_transcript([seg(" mumble", logprob=-1.6)]) == ""
+    assert clean_transcript([seg(" Imagine retrying to predict", no_speech=0.8, logprob=-1.2)]) == ""
+    assert clean_transcript([seg(" mumble jumble", logprob=-2.4)]) == ""
     assert clean_transcript([seg(" Open Instagram"), seg(" please")]) == "Open Instagram please"
+
+
+def test_accented_low_confidence_speech_is_kept():
+    # Regression: real speech often has avg_logprob below -1.0; it must not be dropped
+    # unless Whisper also thinks it isn't speech.
+    assert clean_transcript([seg(" What time is it?", no_speech=0.2, logprob=-1.3)]) == "What time is it?"
+    assert clean_transcript([seg(" Open YouTube", no_speech=0.7, logprob=-0.6)]) == "Open YouTube"
+
+
+def test_quiet_recordings_are_boosted():
+    import numpy as np
+
+    from jarvis.services.stt import normalize_volume
+
+    quiet = (np.sin(np.linspace(0, 100, 16000)) * 1500).astype(np.int16)  # ~5% of full scale
+    assert 0.85 < float(np.max(np.abs(normalize_volume(quiet)))) <= 0.91
+    silence = np.zeros(16000, dtype=np.int16)
+    assert float(np.max(np.abs(normalize_volume(silence)))) == 0.0
 
 
 def test_invalid_settings_fall_back_to_defaults(tmp_path, monkeypatch):

@@ -41,6 +41,12 @@ _RULES = [
 _RULES = [(re.compile(pattern, re.I), replacement) for pattern, replacement in _RULES]
 
 
+# "Hey JARVIS, open YouTube" -> "open YouTube" (voice commands often include the wake phrase)
+_WAKE_PREFIX = re.compile(
+    r"^(?:(?:hey|hi|hello|ok|okay|yo|hay|a|say|see)\s+)?jarvis\b[\s,.!:-]*", re.I  # incl. common mishearings
+)
+
+
 def normalize(text: str) -> str:
     """Tidy whitespace/punctuation and convert common Hinglish commands to English.
 
@@ -48,6 +54,7 @@ def normalize(text: str) -> str:
     """
 
     text = re.sub(r"\s+", " ", str(text or "")).strip().rstrip(".!?").strip()
+    text = _WAKE_PREFIX.sub("", text).strip() or text
 
     phrase = _PHRASES.get(text.lower())
     if phrase:
